@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import axios from "axios";
 import "./App.css";
 
@@ -9,16 +10,24 @@ type Users = {
 
 function App() {
   const [users, setUsers] = useState<Users[]>();
-  const [inputName, setInputName] = useState<string>("");
+  // const [inputName, setInputName] = useState<string>("");
+  // const [inputPosition, setInputPosition] = useState<string>("");
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm<Users>();
 
-  const handleChage = (e: any): void => {
-    setInputName(e.target.value);
-  };
+  // const handleChageNmame = (e: any): void => {
+  //   setInputName(e.target.value);
+  // };
+  // const handleChagePosition = (e: any): void => {
+  //   setInputPosition(e.target.value);
+  // };
 
   useEffect(() => {
     let unmount = false;
     if (!unmount) {
-      console.log("useEffect1が実行されました");
       fetch("/api")
         .then((res) => res.json())
         .then((data) => setUsers(data));
@@ -28,9 +37,10 @@ function App() {
     };
   }, []);
 
-  const testApi = () => {
+  const testApi = (data: Users) => {
+    const { name, position } = data;
     axios
-      .post("/api", { name: inputName, position: "福岡" })
+      .post("/api", { name: name, position: position })
       .then((res) => {
         const test = res.data;
         console.log(test);
@@ -38,12 +48,33 @@ function App() {
       .catch((e) => {
         console.log(e);
       });
+    // setInputName("");
   };
 
   return (
     <div className="App">
       <h1>FRONT</h1>
-      <input type="text" value={inputName} onChange={handleChage} />
+      <form action="post" onSubmit={handleSubmit(testApi)}>
+        <input
+          type="text"
+          placeholder="name"
+          // defaultvalue={inputName}
+          // onChange={handleChageNmame}
+          {...register("name", {
+            required: true,
+          })}
+        />
+        <input
+          type="text"
+          placeholder="position"
+          // value={inputPosition}
+          // onChange={handleChagePosition}
+          {...register("position", {
+            required: true,
+          })}
+        />
+        <button type="submit">データ送信</button>
+      </form>
       <div>
         {users &&
           users.map((user: Users) => (
@@ -51,7 +82,6 @@ function App() {
               {user.name}：{user.position}
             </div>
           ))}
-        <button onClick={testApi}>API</button>
       </div>
     </div>
   );
